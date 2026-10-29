@@ -171,8 +171,11 @@ def main():
         nonlocal stop
         stop = True
     # Ctrl+C, a dropped SSH connection (SIGHUP) or `kill` all stop cleanly, so ouster-cli (in its own
-    # process group) is never left recording on its own
+    # process group) is never left recording on its own. Under `nohup`, SIGHUP is already ignored:
+    # keep it that way so the recording survives the disconnect.
     for sig in (signal.SIGINT, signal.SIGHUP, signal.SIGTERM):
+        if sig == signal.SIGHUP and signal.getsignal(sig) == signal.SIG_IGN:
+            continue
         signal.signal(sig, on_stop_signal)
 
     print(f"Recording session '{args.name}' -> {session}  (Ctrl+C to stop)")
