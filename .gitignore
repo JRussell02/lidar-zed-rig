@@ -1,0 +1,21 @@
+# OS / editor
+.DS_Store
+
+# Python
+__pycache__/
+*.egg-info/
+.venv/
+.pytest_cache/
+
+# Local settings
+config/rig.toml
+
+# Internal notes (machine names, accounts, lab specifics) stay on the owner's computer
+docs/internal/
+
+# Recordings and derived data (hundreds of MB each) never go in git
+sessions/
+processed/
+work/
+*.osf
+*.db3

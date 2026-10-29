@@ -1,0 +1,14 @@
+{
+  "frame_note": "Alternative (scored worse): calibrated rotation with CAD position. Raw (unflipped) left ZED HD image camera pose in the Ouster SENSOR frame (+X away from connector, origin at base center).",
+  "translation_m": [
+    0.078,
+    -0.06,
+    -0.025
+  ],
+  "quaternion_xyzw": [
+    0.49250685364472274,
+    0.500023749437453,
+    0.5078108598217647,
+    0.4995411692328942
+  ]
+}

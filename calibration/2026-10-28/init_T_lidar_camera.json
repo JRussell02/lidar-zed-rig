@@ -1,0 +1,14 @@
+{
+  "frame_note": "Starting guess from the grip CAD model (hardware/mount_handle.blend). Raw (unflipped) left ZED HD image camera pose in the Ouster SENSOR frame (+X away from connector, origin at base center).",
+  "translation_m": [
+    0.078,
+    -0.06,
+    -0.025
+  ],
+  "quaternion_xyzw": [
+    0.5,
+    0.5,
+    0.5,
+    0.5
+  ]
+}

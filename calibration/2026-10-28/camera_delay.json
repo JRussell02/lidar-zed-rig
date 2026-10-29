@@ -1,0 +1,15 @@
+{
+  "camera_delay_ms": 26.0,
+  "meaning": "ZED image arrival time (frames.csv host_ns) minus actual capture time. Capture time = host_ns - camera_delay_ms.",
+  "per_recording_ms": {
+    "calib01": 22,
+    "calib02": 24,
+    "calib03": 28,
+    "calib05": 28
+  },
+  "mean_ms": 25.5,
+  "std_ms": 2.6,
+  "combined_curve_min_ms": 28.3,
+  "method": "lidarzed-delay: LiDAR depth edges (nearest-in-time measurement per direction, +-50 ms) vs image edges during motion, 0-60 ms in 2 ms steps, with T_lidar_camera.json",
+  "date": "2026-10-28"
+}

@@ -1,0 +1,14 @@
+{
+  "frame_note": "IN USE. direct_visual_lidar_calibration, 5 recordings jointly, from the CAD guess. Raw (unflipped) left ZED HD image camera pose in the Ouster SENSOR frame (+X away from connector, origin at base center).",
+  "translation_m": [
+    0.07693731324730956,
+    -0.05219153553682653,
+    -0.05074501148299755
+  ],
+  "quaternion_xyzw": [
+    0.49250685364472274,
+    0.500023749437453,
+    0.5078108598217647,
+    0.4995411692328942
+  ]
+}

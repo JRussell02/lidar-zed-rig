@@ -1,0 +1,14 @@
+{
+  "frame_note": "Alternative: ruler-measured position (lens 24 mm below the OS1 base), rotation refit to image/LiDAR edges. Raw (unflipped) left ZED HD image camera pose in the Ouster SENSOR frame (+X away from connector, origin at base center).",
+  "translation_m": [
+    0.078,
+    -0.06,
+    -0.024
+  ],
+  "quaternion_xyzw": [
+    0.49633639461518975,
+    0.5027544626379489,
+    0.5070193863552026,
+    0.4937807970527163
+  ]
+}

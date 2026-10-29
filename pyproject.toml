@@ -1,0 +1,44 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "lidarzed"
+version = "0.1.0"
+description = "Record, calibrate and color scans from an Ouster OS1 LiDAR + Stereolabs ZED camera handheld rig"
+readme = "README.md"
+license = "MIT"
+license-files = ["LICENSE"]
+requires-python = ">=3.11"
+dependencies = [
+    "ouster-sdk==1.0.1",
+    "opencv-python>=4.9",
+    "numpy>=1.26",
+    "scipy>=1.11",
+]
+
+[project.optional-dependencies]
+calibration = ["rosbags>=0.9"]      # ROS 2 bags for direct_visual_lidar_calibration
+plot = ["matplotlib>=3.8"]
+dev = ["pytest>=8"]
+
+[project.scripts]
+lidarzed-record = "lidarzed.record:main"
+lidarzed-view = "lidarzed.camera:main"
+lidarzed-colorize = "lidarzed.coloring:main"
+lidarzed-render = "lidarzed.render:main"
+lidarzed-eval = "lidarzed.evaluation:main"
+lidarzed-make-bags = "lidarzed.calibration.bag:main"
+lidarzed-init-guess = "lidarzed.calibration.init_guess:main"
+lidarzed-overlay = "lidarzed.calibration.overlay:main"
+lidarzed-edge-score = "lidarzed.calibration.edge_score:main"
+lidarzed-refine-rotation = "lidarzed.calibration.refine_rotation:main"
+lidarzed-delay = "lidarzed.calibration.delay:main"
+lidarzed-height = "lidarzed.calibration.height:main"
+lidarzed-snapshot = "lidarzed.calibration.snapshot:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
