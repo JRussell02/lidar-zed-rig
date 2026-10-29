@@ -12,7 +12,7 @@ A handheld rig that combines an **Ouster OS1-128 LiDAR** with a **Stereolabs ZED
 | [`src/lidarzed/`](src/lidarzed/) | Python package: recorder, camera tools, calibration helpers, coloring, scan evaluation |
 | [`calibration/`](calibration/) | Calibration results per date (camera ↔ LiDAR transform, camera delay, lens file) |
 | [`docker/`](docker/) | Headless image for the [direct_visual_lidar_calibration](https://github.com/koide3/direct_visual_lidar_calibration) toolbox |
-| [`docs/`](docs/) | [Setup](docs/setup.md), [procedure](docs/procedure.md), [calibration report](docs/calibration-report.md), [project log](docs/project-log.md) |
+| [`docs/`](docs/) | [Scan pipeline](docs/scan-pipeline.md), [setup](docs/setup.md), [procedure](docs/procedure.md), [calibration report](docs/calibration-report.md), [project log](docs/project-log.md) |
 | [`tests/`](tests/) | Tests that run without hardware |
 
 ## Highlights
