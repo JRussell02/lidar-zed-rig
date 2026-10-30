@@ -1,4 +1,4 @@
-"""Evaluate and merge Ouster SLAM room scans.
+"""Evaluate and merge room scans (Ouster SLAM clouds or lidarzed-colorize PLYs; colors are kept when merging).
 
 Commands:
   drift  TRAJ.csv [...]                 loop-closure drift from save_trajectory CSVs
@@ -19,10 +19,15 @@ import numpy as np
 from scipy.spatial import cKDTree
 
 
-# ---------- PLY I/O (Ouster writes x,y,z + float attributes) ----------
+# ---------- PLY I/O (Ouster SLAM: x,y,z + float attributes; lidarzed-colorize: x,y,z + uchar red,green,blue) ----------
 
-def read_ply(path):
-    """Return Nx3 float64 xyz from a PLY whose vertex properties are all float32."""
+PLY_TYPES = {"float": "<f4", "float32": "<f4", "double": "<f8", "float64": "<f8",
+             "uchar": "u1", "uint8": "u1", "char": "i1", "int8": "i1", "ushort": "<u2", "uint16": "<u2",
+             "short": "<i2", "int16": "<i2", "uint": "<u4", "uint32": "<u4", "int": "<i4", "int32": "<i4"}
+
+
+def read_ply_rgb(path):
+    """Return (Nx3 float64 xyz, Nx3 float64 rgb or None) from a PLY point cloud."""
     with open(path, "rb") as f:
         header = []
         while True:
@@ -32,35 +37,57 @@ def read_ply(path):
                 break
         fmt = next(l for l in header if l.startswith("format")).split()[1]
         count = int(next(l for l in header if l.startswith("element vertex")).split()[2])
-        props = [l.split()[2] for l in header if l.startswith("property")]
-        if any(l.split()[1] not in ("float", "float32") for l in header if l.startswith("property")):
-            raise SystemExit(f"{path}: only float properties are supported")
+        props = [l.split()[1:3] for l in header if l.startswith("property")]
+        names = [n for _, n in props]
         if fmt == "ascii":
             data = np.loadtxt(f, max_rows=count, ndmin=2)
+            col = lambda n: data[:, names.index(n)]
         else:
-            data = np.fromfile(f, dtype="<f4", count=count * len(props)).reshape(count, len(props))
-    ix = [props.index(c) for c in ("x", "y", "z")]
-    pts = data[:, ix].astype(np.float64)
-    return pts[np.isfinite(pts).all(axis=1)]
+            if any(t not in PLY_TYPES for t, _ in props):
+                raise SystemExit(f"{path}: unsupported property type")
+            data = np.fromfile(f, dtype=[(n, PLY_TYPES[t]) for t, n in props], count=count)
+            col = lambda n: data[n]
+    pts = np.stack([col(c) for c in ("x", "y", "z")], 1).astype(np.float64)
+    rgb = np.stack([col(c) for c in ("red", "green", "blue")], 1).astype(np.float64) \
+        if {"red", "green", "blue"} <= set(names) else None
+    ok = np.isfinite(pts).all(axis=1)
+    return pts[ok], (rgb[ok] if rgb is not None else None)
 
 
-def write_ply(path, pts):
+def read_ply(path):
+    """Return Nx3 float64 xyz from a PLY point cloud."""
+    return read_ply_rgb(path)[0]
+
+
+def write_ply(path, pts, rgb=None):
+    """Binary PLY: x y z, plus uchar red green blue if colors are given."""
+    fields = [("x", "<f4"), ("y", "<f4"), ("z", "<f4")]
+    if rgb is not None:
+        fields += [("red", "u1"), ("green", "u1"), ("blue", "u1")]
+    rec = np.empty(len(pts), dtype=fields)
+    rec["x"], rec["y"], rec["z"] = pts.T
+    if rgb is not None:
+        rec["red"], rec["green"], rec["blue"] = np.clip(np.round(rgb), 0, 255).astype(np.uint8).T
+    props = "".join(f"property {'float' if t == '<f4' else 'uchar'} {n}\n" for n, t in fields)
     with open(path, "wb") as f:
-        f.write((f"ply\nformat binary_little_endian 1.0\nelement vertex {len(pts)}\n"
-                 "property float x\nproperty float y\nproperty float z\nend_header\n").encode())
-        f.write(pts.astype("<f4").tobytes())
+        f.write(f"ply\nformat binary_little_endian 1.0\nelement vertex {len(rec)}\n{props}end_header\n".encode())
+        f.write(rec.tobytes())
 
 
 # ---------- point cloud helpers ----------
 
-def voxel_down(pts, size):
-    """Average points within each voxel of the given size (meters)."""
+def voxel_down(pts, size, rgb=None):
+    """Average points within each voxel of the given size (meters); with rgb, return (points, colors)."""
     keys = np.floor(pts / size).astype(np.int64)
     _, inv, counts = np.unique(keys, axis=0, return_inverse=True, return_counts=True)
     inv = inv.ravel()
     out = np.zeros((len(counts), 3))
     np.add.at(out, inv, pts)
-    return out / counts[:, None]
+    if rgb is None:
+        return out / counts[:, None]
+    col = np.zeros((len(counts), 3))
+    np.add.at(col, inv, rgb)
+    return out / counts[:, None], col / counts[:, None]
 
 
 def transform(pts, T):
@@ -130,17 +157,17 @@ def cmd_drift(args):
 
 
 def cmd_align(args):
-    ref_full = read_ply(args.ref)
+    ref_full, ref_rgb = read_ply_rgb(args.ref)
     ref = voxel_down(ref_full, args.voxel)
     ref_tree = cKDTree(ref)
     ref_eval = voxel_down(ref_full, args.eval_voxel)
     ref_eval_tree = cKDTree(ref_eval)
     print(f"Reference {args.ref}: {len(ref_full):,} pts")
 
-    merged = [ref_full]
+    merged, merged_rgb = [ref_full], [ref_rgb]
     summary = []
     for path in args.others:
-        full = read_ply(path)
+        full, rgb = read_ply_rgb(path)
         src = voxel_down(full, args.voxel)
 
         T0 = np.eye(4)
@@ -170,13 +197,21 @@ def cmd_align(args):
             continue
         summary.append((path, s))
         merged.append(transform(full, T))
+        merged_rgb.append(rgb)
         np.savetxt(path.rsplit(".", 1)[0] + "_to_ref.txt", T, fmt="%.8f",
                    header=f"4x4 transform aligning {path} to {args.ref}")
 
     if args.merge:
-        out = voxel_down(np.vstack(merged), args.merge_voxel)
-        write_ply(args.merge, out)
-        print(f"\nMerged {len(merged)} scans -> {args.merge} ({len(out):,} pts, {args.merge_voxel * 100:.0f} cm voxels)")
+        colored = all(c is not None for c in merged_rgb)
+        if not colored and any(c is not None for c in merged_rgb):
+            print("\nSome scans have no colors: writing the merged cloud without colors")
+        if colored:
+            out, out_rgb = voxel_down(np.vstack(merged), args.merge_voxel, np.vstack(merged_rgb))
+        else:
+            out, out_rgb = voxel_down(np.vstack(merged), args.merge_voxel), None
+        write_ply(args.merge, out, out_rgb)
+        print(f"\nMerged {len(merged)} scans -> {args.merge} ({len(out):,} pts, {args.merge_voxel * 100:.0f} cm voxels"
+              f"{', colored' if colored else ''})")
 
     if len(summary) > 1:
         rms = np.array([s["rms"] for _, s in summary])

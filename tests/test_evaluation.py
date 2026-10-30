@@ -40,3 +40,14 @@ def test_ply_roundtrip(tmp_path):
     f = tmp_path / "x.ply"
     ev.write_ply(f, pts)
     assert np.allclose(ev.read_ply(f), pts, atol=1e-6)
+
+
+def test_colored_ply_roundtrip_and_voxel_colors(tmp_path):
+    rng = np.random.default_rng(2)
+    pts, rgb = rng.random((100, 3)), rng.integers(0, 256, (100, 3)).astype(float)
+    f = tmp_path / "c.ply"
+    ev.write_ply(f, pts, rgb)
+    p2, c2 = ev.read_ply_rgb(f)
+    assert np.allclose(p2, pts, atol=1e-6) and np.array_equal(c2, rgb)
+    _, c = ev.voxel_down(np.zeros((2, 3)), 0.02, np.array([[0, 0, 0], [200, 100, 50]], float))
+    assert np.allclose(c, [[100, 50, 25]])
