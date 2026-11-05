@@ -9,6 +9,14 @@ A 3D-printed pistol grip that carries the Ouster OS1 on top and the ZED camera u
 | `grip_with_zed_mount.stl` | **Print this.** Final grip with the ZED mount (watertight, 102 × 132 × 105.5 mm, ~189 cm³) |
 | `mount_handle.blend` | Blender source (5.x, units in mm). The ZED mount features are boolean modifiers on `hand_grip`; the dark box is a ZED stand-in |
 | `hand_grip.stl` | Original grip without the ZED mount (102 × 103 × 105.5 mm) |
+| `tripod_grip_mount.stl` | **Tripod-grip version** (Nov 2026): the same plate without the handle, bolted to a tripod grip (102 × 131 × 17 mm) |
+| `tripod_grip_mount.blend` | Its Blender source: `mount_handle.blend` plus a cut removing the handle (`Cube.004`) and the `tripod_cutters` collection |
+
+### Tripod-grip version
+
+Same plate, OS1 bolt pattern and ZED mount as the grip above (identical to within 0.5 mm in the CAD), so the camera sits where it did. The handle is cut off flush with the plate's underside, and four holes on a **45.4 × 21.2 mm** pattern around the plate center (6.6 mm clearance, hex nut pockets 10.3 mm across flats from the top) bolt it to the tripod grip.
+
+Reassembling still moves the camera slightly, so **recalibrate** after switching mounts (`docs/procedure.md` § 3).
 
 ## Design
 
