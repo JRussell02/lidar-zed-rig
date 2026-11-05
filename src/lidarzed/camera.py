@@ -65,6 +65,29 @@ def open_zed(index=None, res="720"):
     return cap, index
 
 
+def usb_speed_mbps():
+    """USB link speed of the ZED on Linux (5000 = USB 3, 480 = USB 2), or None if unknown."""
+    for dev in Path("/sys/bus/usb/devices").glob("*"):
+        try:
+            if (dev / "idVendor").read_text().strip() == "2b03":   # Stereolabs
+                return int((dev / "speed").read_text())
+        except (OSError, ValueError):
+            continue
+    return None
+
+
+def check_frame(frame, res):
+    """Stop if the ZED didn't deliver the requested size (on USB 2 it silently falls back to VGA)."""
+    w, h = RESOLUTIONS[res]
+    if frame.shape[1] == w and frame.shape[0] == h:
+        return
+    speed = usb_speed_mbps()
+    hint = (f" The ZED is on a USB 2 link ({speed} Mbps): plug it firmly into a blue USB 3 port"
+            " (`lsusb -t` should show 5000M), or try another cable." if speed is not None and speed < 5000 else
+            " Usually a USB 2 connection: plug it firmly into a blue USB 3 port.")
+    raise SystemExit(f"ZED gave {frame.shape[1]}x{frame.shape[0]}, expected {w}x{h}.{hint}")
+
+
 def split_stereo(frame, upside_down=False):
     """(left, right) as the world sees them. Mounted upside down, each image is rotated 180° and
     the camera's right lens becomes the world's left."""

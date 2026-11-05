@@ -49,3 +49,11 @@ def test_transform_roundtrip(tmp_path):
     T = load_T(CAL / "T_lidar_camera.json")
     save_T(tmp_path / "t.json", T)
     assert np.allclose(load_T(tmp_path / "t.json"), T)
+
+
+def test_check_frame_stops_on_vga_fallback():
+    import pytest
+    from lidarzed.camera import check_frame
+    check_frame(np.zeros((720, 2560, 3), np.uint8), "720")
+    with pytest.raises(SystemExit, match="1344x376, expected 2560x720"):
+        check_frame(np.zeros((376, 1344, 3), np.uint8), "720")

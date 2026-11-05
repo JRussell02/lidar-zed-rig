@@ -11,7 +11,7 @@ import cv2
 import numpy as np
 from ouster.sdk import core, open_source
 
-from ..camera import RESOLUTIONS, open_zed
+from ..camera import RESOLUTIONS, check_frame, open_zed
 
 
 def main():
@@ -31,6 +31,7 @@ def main():
     cap.release()
     if not ok:
         raise SystemExit("ZED frame grab failed")
+    check_frame(frame, "720")
     cv2.imwrite(str(args.out / "snapshot.jpg"), frame[:, : RESOLUTIONS["720"][0] // 2])
 
     src = open_source(args.sensor)

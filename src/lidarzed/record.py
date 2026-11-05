@@ -26,7 +26,7 @@ from pathlib import Path
 
 import cv2
 
-from .camera import CALIB_SECTION, RESOLUTIONS, open_zed
+from .camera import CALIB_SECTION, RESOLUTIONS, check_frame, open_zed
 
 DEFAULT_CONFIG = Path("config/rig.toml")
 
@@ -116,8 +116,7 @@ def main():
     ok, frame = cap.read()
     if not ok:
         raise SystemExit("Could not read from the ZED")
-    if frame.shape[1] != w or frame.shape[0] != h:
-        raise SystemExit(f"ZED gave {frame.shape[1]}x{frame.shape[0]}, expected {w}x{h}")
+    check_frame(frame, res)
 
     zed_dir = session / "zed"
     (zed_dir / "left").mkdir(parents=True)
@@ -233,7 +232,7 @@ def main():
     meta.update(stopped_host_ns=time.time_ns(), zed_frames=n_saved, zed_dropped=n_dropped,
                 lidar_exit_code=lidar.returncode if lidar else None)
     print(f"Saved {n_saved} ZED frames in {elapsed:.1f} s ({n_saved / max(elapsed, 1e-9):.1f} fps), "
-          f"{n_dropped} dropped (disk too slow)")
+          f"{n_dropped} dropped" + (" (disk too slow)" if n_dropped else ""))
     if lidar:
         osf = session / "lidar.osf"
         if osf.exists() and osf.stat().st_size > 0:
