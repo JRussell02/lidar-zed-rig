@@ -8,19 +8,13 @@ import argparse
 import cv2
 import numpy as np
 
+from .evaluation import read_ply_rgb
+
 
 def read_ply(path):
-    with open(path, "rb") as f:
-        n = 0
-        while True:
-            line = f.readline().decode().strip()
-            if line.startswith("element vertex"):
-                n = int(line.split()[-1])
-            if line == "end_header":
-                break
-        rec = np.frombuffer(f.read(), dtype=[("x", "<f4"), ("y", "<f4"), ("z", "<f4"),
-                                             ("r", "u1"), ("g", "u1"), ("b", "u1")], count=n)
-    return np.stack([rec["x"], rec["y"], rec["z"]], 1).astype(np.float64), np.stack([rec["b"], rec["g"], rec["r"]], 1)
+    """Return (Nx3 xyz, Nx3 uint8 bgr) from a colored PLY."""
+    xyz, rgb = read_ply_rgb(path)
+    return xyz, rgb[:, ::-1].astype(np.uint8)
 
 
 def render(xyz, bgr, eye, look, w=1280, h=720, fov_deg=80, splat=2):

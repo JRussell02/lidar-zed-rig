@@ -18,6 +18,7 @@ A session folder holds `lidar.osf` (raw LiDAR, indexed by packet arrival time), 
 
 ```bash
 ouster-cli source sessions/scan01/lidar.osf slam -v 0.1 save processed/scan01_slam.osf
+lidarzed-eval path processed/scan01_slam.osf                   # flags SLAM that lost track (path height span > 2 m)
 lidarzed-colorize sessions/scan01 processed/scan01_slam.osf --out processed/scan01_color.ply
 lidarzed-render processed/scan01_color.ply --out view.jpg      # quick look; or open the PLY in CloudCompare
 ```
@@ -87,6 +88,7 @@ For the height test, record 30 s with the rig resting still, a box with a sharp 
 ouster-cli source sessions/A1/lidar.osf slam -v 0.1 save_trajectory processed/A1_traj.csv
 lidarzed-eval drift processed/A1_traj.csv processed/A2_traj.csv      # start-to-end gap (start and end on a floor mark)
 lidarzed-eval align processed/A1.ply processed/A2.ply --merge processed/merged.ply   # ICP repeatability + merge
+lidarzed-eval align processed/A1.ply processed/B1.ply --global --merge processed/merged.ply   # different start spots
 lidarzed-eval refs measurements.csv                                  # tape vs scan distances
 ```
 

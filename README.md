@@ -45,7 +45,7 @@ Open the PLY in [CloudCompare](https://www.cloudcompare.org). Full steps, includ
 | `lidarzed-view` | Live ZED viewer (`--upside-down` for this grip) |
 | `lidarzed-colorize` | Color a SLAM'd recording → PLY |
 | `lidarzed-render` | Quick image of a colored PLY |
-| `lidarzed-eval` | Scan fidelity: drift, ICP repeatability/merge, tape comparison |
+| `lidarzed-eval` | Scan fidelity: SLAM path check, drift, ICP repeatability/merge (also from different start spots), tape comparison |
 | `lidarzed-make-bags` | Recordings → ROS 2 bags for the calibration toolbox |
 | `lidarzed-init-guess` | Put a starting guess into the toolbox's `calib.json` |
 | `lidarzed-overlay`, `lidarzed-edge-score` | Check a calibration visually / numerically |

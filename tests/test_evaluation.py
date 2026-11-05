@@ -51,3 +51,40 @@ def test_colored_ply_roundtrip_and_voxel_colors(tmp_path):
     assert np.allclose(p2, pts, atol=1e-6) and np.array_equal(c2, rgb)
     _, c = ev.voxel_down(np.zeros((2, 3)), 0.02, np.array([[0, 0, 0], [200, 100, 50]], float))
     assert np.allclose(c, [[100, 50, 25]])
+
+
+def test_global_align_recovers_any_start_pose():
+    rng = np.random.default_rng(3)
+    ref = synthetic_room(rng)
+    tilt = np.eye(4)
+    tilt[:3, :3] = ev.rot_between(np.array([0.0, 0.0, 1.0]), np.array([np.sin(np.radians(8)), 0, np.cos(np.radians(8))]))
+    T_true = ev.rot_z(130.0) @ tilt
+    T_true[:3, 3] = [2.5, -1.0, 0.3]
+    moved = ev.transform(synthetic_room(rng), T_true)
+
+    T = ev.global_align(moved, ref)
+    src_d, ref_d = ev.voxel_down(moved, 0.05), ev.voxel_down(ref, 0.05)
+    T = ev.icp(src_d, cKDTree(ref_d), ref_d, T)
+
+    err = T @ T_true                  # identity if T undoes T_true
+    assert np.linalg.norm(err[:3, 3]) < 0.02
+    assert np.degrees(np.arccos(np.clip((np.trace(err[:3, :3]) - 1) / 2, -1, 1))) < 0.5
+
+
+def test_path_report_flags_height_and_tilt():
+    poses = np.repeat(np.eye(4)[None], 4, axis=0)
+    poses[:, :3, 3] = [[0, 0, 0], [1, 0, 0], [1, 0, -2], [0, 0, 0]]
+    poses[2, :3, :3] = ev.rot_between(np.array([0.0, 0.0, 1.0]), np.array([0.0, np.sin(0.5), np.cos(0.5)]))
+    r = ev.path_report(poses)
+    assert np.isclose(r["length"], 1 + 2 + np.sqrt(5))
+    assert (r["z_min"], r["z_max"], r["max_jump"]) == (-2, 0, np.sqrt(5))
+    assert np.isclose(r["tilt_max"], np.degrees(0.5)) and r["end_gap"] == 0
+
+
+def test_merge_colors_only_from_colored_points():
+    pts = np.array([[0.001, 0, 0], [0.002, 0, 0], [0.5, 0, 0]])
+    rgb = np.array([[200, 0, 0], [128, 128, 128], [128, 128, 128]], float)
+    out, col, colored = ev.voxel_down(pts, 0.02, rgb, np.array([True, False, False]))
+    first = np.argmin(out[:, 0])
+    assert colored[first] and not colored[1 - first]
+    assert np.allclose(col[first], [200, 0, 0])                         # the gray point doesn't dilute it

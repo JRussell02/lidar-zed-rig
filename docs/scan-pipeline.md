@@ -112,7 +112,15 @@ ouster-cli source sessions/scan01/lidar.osf slam -v 0.1 save processed/scan01_sl
 
 SLAM (from the Ouster SDK) aligns the LiDAR scans to each other and stores the rig's position and orientation for **every column of every scan**, so motion during each 0.1 s spin is accounted for. About 30 s per minute of recording on a laptop.
 
-Optional checks:
+Check the path before colorizing:
+
+```bash
+lidarzed-eval path processed/scan01_slam.osf
+```
+
+It prints the path's height range, tilt and largest jump between scans, relative to the start. A handheld walk stays within about 1 m of height; a span of several meters (flagged as `⚠ SLAM probably lost track`) means the result is unusable. Typical causes: the rig held closer than 1 m to surfaces, only flat floor or ceiling in view, or jerky stop–tilt–stop motion.
+
+Other optional checks:
 
 ```bash
 ouster-cli source sessions/scan01/lidar.osf slam -v 0.1 viz --map            # watch the map and path build (needs a screen)
@@ -133,6 +141,8 @@ For every LiDAR scan, this:
 
 About 30–40 s per minute of recording on a laptop. Only areas the camera has seen get colored, so face the camera at everything you want in color.
 
+**Denser models:** the camera only looks forward, so by default about half of the LiDAR's points are dropped. `--all-points` keeps them all; points no camera saw are gray, with a PLY property `colored = 0`. When such scans are merged (`lidarzed-eval align … --merge`), each point takes its color from whichever scan's camera saw it.
+
 ## 7. View and check
 
 - Open `processed/scan01_color.ply` in **CloudCompare** (File → Open). Raise the point size to 2–3 and turn on **Display → Shaders → EDL** for depth.
@@ -146,7 +156,7 @@ What to look for: walls appearing **twice** (SLAM drift, so walk slower or re-re
 |---|---|
 | Measure accuracy | Tape-measure distances in the room, measure the same in CloudCompare, compare with `lidarzed-eval refs measurements.csv` |
 | Check drift | Start and end on a floor mark; `lidarzed-eval drift processed/scan01_traj.csv` |
-| Combine several scans | `lidarzed-eval align processed/a.ply processed/b.ply --merge processed/merged.ply` (only helps if the scans agree) |
+| Combine several scans | `lidarzed-eval align processed/a.ply processed/b.ply --merge processed/merged.ply` (only helps if the scans agree; add `--global` if they didn't start on the same spot and heading) |
 | Make a solid model | CloudCompare → compute normals → **Poisson Surface Reconstruction** (or MeshLab), export OBJ/PLY |
 
 ## Quick reference
@@ -158,6 +168,7 @@ lidarzed-record scanNN --no-viz --duration 240
 
 # afterwards (mini PC or laptop)
 ouster-cli source sessions/scanNN/lidar.osf slam -v 0.1 save processed/scanNN_slam.osf
+lidarzed-eval path processed/scanNN_slam.osf          # ✅ or ⚠ lost track
 lidarzed-colorize sessions/scanNN processed/scanNN_slam.osf --out processed/scanNN_color.ply
 # open processed/scanNN_color.ply in CloudCompare
 ```
