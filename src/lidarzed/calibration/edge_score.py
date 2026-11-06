@@ -5,8 +5,8 @@ projects them with each calibration and measures the distance to the nearest ima
 better aligned. Reported per distance band: a translation error shows mostly on NEAR objects, a
 rotation error everywhere.
 
-  lidarzed-edge-score sessions/calib0[1-5] --T calibration/2026-10-28/init_T_lidar_camera.json \
-      calibration/2026-10-28/T_lidar_camera.json
+  lidarzed-edge-score sessions/calib0[1-5] --T calibration/2026-11-05/init_T_lidar_camera.json \
+      calibration/2026-11-05/T_lidar_camera.json
 """
 import argparse
 import csv

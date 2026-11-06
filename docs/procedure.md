@@ -56,7 +56,7 @@ done
 mkdir -p work/pre && cp work/pre_each/*/calib0* work/pre/
 python -c "import json; c=json.load(open('work/pre_each/calib01/calib.json')); c['meta']['bag_names']=['calib01','calib02','calib03','calib04','calib05']; json.dump(c, open('work/pre/calib.json','w'), indent=2)"
 
-lidarzed-init-guess work/pre --init calibration/2026-10-28/init_T_lidar_camera.json
+lidarzed-init-guess work/pre --init calibration/2026-11-05/T_lidar_camera.json   # same mount: start from the current calibration
 docker/vlcal.sh calibrate --data_path /data/pre --background --auto_quit
 # result: results.T_lidar_camera in work/pre/calib.json
 ```

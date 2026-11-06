@@ -12,7 +12,7 @@ A handheld rig that combines an **Ouster OS1-128 LiDAR** with a **Stereolabs ZED
 | [`src/lidarzed/`](src/lidarzed/) | Python package: recorder, camera tools, calibration helpers, coloring, scan evaluation |
 | [`calibration/`](calibration/) | Calibration results per date (camera ↔ LiDAR transform, camera delay, lens file) |
 | [`docker/`](docker/) | Headless image for the [direct_visual_lidar_calibration](https://github.com/koide3/direct_visual_lidar_calibration) toolbox |
-| [`docs/`](docs/) | [Scan pipeline](docs/scan-pipeline.md), [setup](docs/setup.md), [procedure](docs/procedure.md), [calibration report](docs/calibration-report.md), [project log](docs/project-log.md) |
+| [`docs/`](docs/) | [Scan pipeline](docs/scan-pipeline.md), [setup](docs/setup.md), [procedure](docs/procedure.md), calibration reports ([28 Oct](docs/calibration-report.md), [5 Nov](docs/calibration-report-2026-11-05.md)), [project log](docs/project-log.md) |
 | [`tests/`](tests/) | Tests that run without hardware |
 
 ## Highlights
@@ -54,7 +54,7 @@ Open the PLY in [CloudCompare](https://www.cloudcompare.org). Full steps, includ
 
 ## Status
 
-Calibrated and coloring works (see the [calibration report](docs/calibration-report.md)). Next: full room scans and accuracy evaluation.
+Calibrated and coloring works; recalibrated for the tripod-grip mount (see the [5 Nov calibration report](docs/calibration-report-2026-11-05.md)). Next: full room scans and accuracy evaluation.
 
 ## Acknowledgments
 

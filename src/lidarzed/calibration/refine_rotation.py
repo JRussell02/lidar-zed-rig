@@ -4,7 +4,7 @@ Targetless calibration fits translation and rotation together; when the translat
 rotation compensates. This keeps a measured translation and fits the 3 rotation angles by minimizing
 how far projected LiDAR depth edges land from image edges, over all given sessions.
 
-  lidarzed-refine-rotation sessions/calib0[1-5] --start calibration/2026-10-28/init_T_lidar_camera.json \
+  lidarzed-refine-rotation sessions/calib0[1-5] --start calibration/2026-11-05/init_T_lidar_camera.json \
       --t 0.078 -0.060 -0.024 --out T_rotfit.json
 """
 import argparse

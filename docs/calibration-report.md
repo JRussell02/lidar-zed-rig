@@ -4,6 +4,8 @@ Status of the handheld LiDAR + camera rig after its first calibration session: w
 
 **Rig:** Ouster OS-1-128 + Stereolabs ZED (1st gen) on the [3D-printed grip](../hardware/) · **Compute:** Linux mini PC on a rolling cart
 
+> **Superseded for the tripod-grip mount** by the [5 Nov 2026 recalibration](calibration-report-2026-11-05.md), which also settles the camera-height question below.
+
 ## Bottom line
 
 | | Verdict | Details |

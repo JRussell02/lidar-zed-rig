@@ -6,7 +6,7 @@ and measure the distance to the image's edges. While the rig moves, a wrong d pa
 points from another pose and the edges drift apart, so the d with the lowest error is the delay.
 The hold-still start carries no information and is skipped.
 
-  lidarzed-delay sessions/calib01 sessions/calib05 --T calibration/2026-10-28/T_lidar_camera.json --plot delay.png
+  lidarzed-delay sessions/calib01 sessions/calib05 --T calibration/2026-11-05/T_lidar_camera.json --plot delay.png
 """
 import argparse
 import csv

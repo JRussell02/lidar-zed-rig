@@ -94,7 +94,7 @@ def main():
     res = args.res or cam_cfg.get("resolution", "720")
     fps = args.fps or cam_cfg.get("fps", 15)
     upside_down = cam_cfg.get("upside_down", True)
-    lens_conf = Path(cam_cfg.get("lens_calibration", "calibration/2026-10-28/SN17516.conf"))
+    lens_conf = Path(cam_cfg.get("lens_calibration", "calibration/2026-11-05/SN17516.conf"))
     sessions = Path(args.sessions or cfg.get("paths", {}).get("sessions", "sessions"))
 
     session = sessions / args.name

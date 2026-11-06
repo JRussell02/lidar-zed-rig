@@ -3,7 +3,7 @@
 The tool reads results.init_T_lidar_camera = [tx, ty, tz, qx, qy, qz, qw]: the camera's pose in the
 LiDAR (Ouster sensor) frame, in meters. Our transform JSON stores exactly that.
 
-  lidarzed-init-guess work/pre --init calibration/2026-10-28/init_T_lidar_camera.json
+  lidarzed-init-guess work/pre --init calibration/2026-11-05/init_T_lidar_camera.json
 """
 import argparse
 import json

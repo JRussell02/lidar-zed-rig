@@ -9,7 +9,7 @@ host = "os-XXXXXXXXXXXX.local"
 resolution = "720"          # 2K | 1080 | 720 | VGA (per-eye 1280x720 at "720")
 fps = 15                    # JPEGs saved per second
 upside_down = true          # how the ZED is mounted (recorded in meta.json; images are saved raw)
-lens_calibration = "calibration/2026-10-28/SN17516.conf"   # ZED factory file, from calib.stereolabs.com/?SN=<serial>
+lens_calibration = "calibration/2026-11-05/SN17516.conf"   # ZED factory file, from calib.stereolabs.com/?SN=<serial>
 
 [paths]
 sessions = "sessions"       # where recordings go

@@ -3,7 +3,7 @@
 Uses the hold-still scans (rig not moving, so they stack into a denser cloud) and the camera frame
 nearest the first of them. If the calibration is right, depth edges land on the image edges.
 
-  lidarzed-overlay sessions/calib05 --T calibration/2026-10-28/T_lidar_camera.json --out overlay.jpg --upright
+  lidarzed-overlay sessions/calib05 --T calibration/2026-11-05/T_lidar_camera.json --out overlay.jpg --upright
 """
 import argparse
 import csv

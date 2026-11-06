@@ -38,4 +38,4 @@ This adds a virtual display (Xvfb) to [direct_visual_lidar_calibration](https://
 
 ## Timing
 
-The original ZED has no hardware sync. Both sensors are timestamped by the computer: LiDAR packets on arrival (`ouster-cli ... save --ts packet`), camera frames on arrival. The camera's image arrives ~26 ms after capture for this rig (`calibration/2026-10-28/camera_delay.json`); `lidarzed-delay` measures it for yours.
+The original ZED has no hardware sync. Both sensors are timestamped by the computer: LiDAR packets on arrival (`ouster-cli ... save --ts packet`), camera frames on arrival. The camera's image arrives ~26 ms after capture for this rig (`calibration/2026-11-05/camera_delay.json`); `lidarzed-delay` measures it for yours.

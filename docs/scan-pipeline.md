@@ -74,7 +74,7 @@ lidarzed-snapshot --sensor <sensor-host> --out snapshot/
 
 ## 3. Is the calibration still valid?
 
-The calibration in `calibration/2026-10-28/` is valid **as long as nothing has moved on the mount**. If the ZED was removed or re-screwed, or the grip was reprinted, recalibrate first (see [procedure](procedure.md#3-calibrate-the-camera-to-the-lidar); this is the only part that uses ROS).
+The calibration in `calibration/2026-11-05/` (tripod-grip mount; `calibration/2026-10-28/` for the pistol grip) is valid **as long as nothing has moved on the mount**. If the ZED was removed or re-screwed, or the grip was reprinted, recalibrate first (see [procedure](procedure.md#3-calibrate-the-camera-to-the-lidar); this is the only part that uses ROS).
 
 ## 4. Record
 

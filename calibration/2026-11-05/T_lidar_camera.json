@@ -1,0 +1,14 @@
+{
+  "frame_note": "IN USE. Tripod-grip mount. direct_visual_lidar_calibration, tri-calib01-05 jointly, from the 2026-10-28 result. Raw (unflipped) left ZED HD image camera pose in the Ouster SENSOR frame (+X away from connector, origin at base center).",
+  "translation_m": [
+    0.07377721040928284,
+    -0.04795103905359828,
+    -0.048556137534131946
+  ],
+  "quaternion_xyzw": [
+    0.4928616351550146,
+    0.496917923772127,
+    0.5064890392780376,
+    0.5036157649612792
+  ]
+}

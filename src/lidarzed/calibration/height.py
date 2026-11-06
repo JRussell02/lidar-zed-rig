@@ -4,7 +4,7 @@ Targetless calibration constrains height poorly in rooms full of vertical edges.
 a box top (near, ~1 m) in front of a wall (far) helps: for each candidate height the camera tilt is
 re-fitted, and the right height lines up BOTH the near and the far horizontal edges.
 
-  lidarzed-height sessions/height01 --T calibration/2026-10-28/T_lidar_camera.json --plot height.png
+  lidarzed-height sessions/height01 --T calibration/2026-11-05/T_lidar_camera.json --plot height.png
 """
 import argparse
 import csv

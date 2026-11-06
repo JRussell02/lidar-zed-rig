@@ -17,7 +17,7 @@ Steps:
   ouster-cli source sessions/X/lidar.osf slam -v 0.1 save processed/X_slam.osf
   lidarzed-colorize sessions/X processed/X_slam.osf --out processed/X_color.ply
 
---T and --delay default to calibration/2026-10-28/ (relative to the current folder).
+--T and --delay default to calibration/2026-11-05/ (relative to the current folder).
 """
 import argparse
 import csv
@@ -33,7 +33,7 @@ from .camera import lens_from_session
 from .lidar import column_host_ns, frames, open_osf
 from .transforms import load_T
 
-CALIBRATION = Path("calibration/2026-10-28")
+CALIBRATION = Path("calibration/2026-11-05")
 HALF_FOV_DEG = 55          # select LiDAR points roughly in front of the camera before projecting
 ZBUF_BLOCK = 4             # px; depth test resolution
 ZBUF_TOL = 0.03            # keep points within 3% (+2 cm) of the nearest depth in their block

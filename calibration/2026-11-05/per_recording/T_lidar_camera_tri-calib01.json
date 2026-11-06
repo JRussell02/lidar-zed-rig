@@ -1,0 +1,14 @@
+{
+  "frame_note": "Cross-check: tri-calib01 calibrated alone. Raw (unflipped) left ZED HD image camera pose in the Ouster SENSOR frame (+X away from connector, origin at base center).",
+  "translation_m": [
+    0.07457210891966613,
+    -0.04614459104318811,
+    -0.054308240925924525
+  ],
+  "quaternion_xyzw": [
+    0.4926201658841714,
+    0.49629550015787,
+    0.5069115877231161,
+    0.5040404655574101
+  ]
+}
