@@ -114,3 +114,8 @@ def test_path_report_uses_true_vertical_for_tilted_start():
     assert naive["z_max"] - naive["z_min"] > 2.0    # the old false alarm
     assert fixed["z_max"] - fixed["z_min"] < 1e-6
     assert np.isclose(fixed["tilt_start"], 25.0) and np.isclose(fixed["tilt_max"], 25.0)
+
+
+def test_rotation_summary_separates_yaw_and_tilt():
+    yaw, tilt, total = ev.rotation_summary(ev.rot_z(5.0) @ tilt_about_x(15.0))
+    assert np.isclose(tilt, 15.0) and abs(yaw - 5.0) < 0.5 and 15.0 < total < 16.0

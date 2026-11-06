@@ -315,6 +315,14 @@ def path_report(poses, up=None):
                 end_gap=np.linalg.norm(p[-1]), end_tilt=tilt[-1] - tilt[0])
 
 
+def rotation_summary(T):
+    """(yaw, tilt, total) in degrees of a 4x4 transform: turn about z, how far z itself is tipped, and the
+    whole rotation angle. A scan that started tilted shows up in tilt, which yaw alone hides."""
+    R = T[:3, :3]
+    return (np.degrees(np.arctan2(R[1, 0], R[0, 0])), np.degrees(np.arccos(np.clip(R[2, 2], -1, 1))),
+            np.degrees(np.arccos(np.clip((np.trace(R) - 1) / 2, -1, 1))))
+
+
 def dist_stats(d, overlap_d):
     o = d[d < overlap_d]
     if len(o) == 0:
@@ -394,9 +402,10 @@ def cmd_align(args):
         ev = transform(voxel_down(full, args.eval_voxel), T)
         d, _ = ref_eval_tree.query(ev)
         s = dist_stats(d, args.overlap)
-        yaw = np.degrees(np.arctan2(T[1, 0], T[0, 0]))
+        yaw, tilt, total = rotation_summary(T)
         print(f"\n{path}: {len(full):,} pts")
-        print(f"  ICP correction: translation {np.linalg.norm(T[:3, 3]):.3f} m, yaw {yaw:+.2f}°")
+        print(f"  ICP correction: translation {np.linalg.norm(T[:3, 3]):.3f} m, yaw {yaw:+.2f}°, "
+              f"tilt {tilt:.1f}° (total rotation {total:.1f}°)")
         if s["overlap"] == 0:
             print("  NO OVERLAP: alignment failed (try --global)")
             continue
