@@ -176,21 +176,35 @@ def rot_between(a, b):
     return np.eye(3) + K + K @ K * ((1 - c) / s ** 2)
 
 
+def up_direction(n, hint=(0.0, 0.0, 1.0), max_deg=30, tol_deg=5):
+    """True up from surface normals, or None: the direction most normals within max_deg of hint share.
+
+    Floor, ceiling and table tops all face along true up, so their normals pile up in one direction;
+    walls and clutter spread out. Taking that pile's direction (not the mean of everything near hint)
+    keeps sloped and noisy surfaces from tilting the result.
+    """
+    hint = np.asarray(hint, float) / np.linalg.norm(hint)
+    n = n * np.where(n @ hint < 0, -1.0, 1.0)[:, None]           # ceilings face down: flip to hint's side
+    cand = n[n @ hint > np.cos(np.radians(max_deg))]
+    if len(cand) < 100:
+        return None
+    cos_tol = np.cos(np.radians(tol_deg))
+    trial = cand[np.random.default_rng(0).choice(len(cand), min(500, len(cand)), replace=False)]
+    best = trial[np.argmax([(cand @ t > cos_tol).sum() for t in trial])]
+    m = cand[cand @ best > cos_tol].mean(0)
+    return m / np.linalg.norm(m)
+
+
 def level(pts, n):
     """Transform making floor/ceiling horizontal (up = +z) with the floor at z = 0; also returns a wall mask.
 
-    Up is the mean normal of the horizontal surfaces near the cloud's z axis (SLAM's z is the start
-    pose's up, so it is within ~30° of true up); the floor is the lowest well-populated height of those
-    surfaces.
+    Up comes from up_direction() within 30° of the cloud's z axis (SLAM's z is the start pose's up);
+    the floor is the lowest well-populated height of the horizontal surfaces.
     """
-    up = np.array([0.0, 0.0, 1.0])
-    for max_deg in (30, 10, 5):
-        c = n @ up
-        horiz = np.abs(c) > np.cos(np.radians(max_deg))
-        if horiz.sum() < 100:
-            raise SystemExit("global alignment: no floor or ceiling found")
-        m = (n[horiz] * np.sign(c[horiz])[:, None]).sum(0)
-        up = m / np.linalg.norm(m)
+    up = up_direction(n)
+    if up is None:
+        raise SystemExit("global alignment: no floor or ceiling found")
+    horiz = np.abs(n @ up) > np.cos(np.radians(5))
     T = np.eye(4)
     T[:3, :3] = rot_between(up, np.array([0.0, 0.0, 1.0]))
     z = transform(pts[horiz], T)[:, 2]
@@ -259,28 +273,46 @@ def global_align(full, ref_full, voxel=0.1, overlap=0.1):
 
 # ---------- SLAM path check ----------
 
-def slam_poses(path):
-    """One body-to-world pose per scan (its middle column) from a SLAM'd OSF, as (N, 4, 4)."""
+def slam_poses(path, map_every=0):
+    """One body-to-world pose per scan (its middle column) from a SLAM'd OSF, as (N, 4, 4).
+
+    With map_every = k, also returns a sparse world-frame map from every k-th scan: (poses, Mx3 points).
+    """
+    from ouster.sdk import core
     from .lidar import frames, open_osf
-    src, _ = open_osf(path)
-    poses = []
-    for fr in frames(src):
-        b2w = np.asarray(fr.body_to_world)
-        poses.append(np.array(b2w[len(b2w) // 2], copy=True))   # copy, so the frame can be freed
-        del b2w, fr
+    src, info = open_osf(path)
+    lut = core.XYZLut(info) if map_every else None
+    poses, pts = [], []
+    for k, fr in enumerate(frames(src)):
+        b2w = np.array(fr.body_to_world, copy=True)               # copies, so the frame can be freed
+        rng = np.array(fr.field(core.ChanField.RANGE), copy=True) if map_every and k % map_every == 0 else None
+        del fr
+        poses.append(b2w[len(b2w) // 2])
+        if rng is not None:
+            xyz = lut(rng)
+            r = np.linalg.norm(xyz, axis=2)
+            rows, cols = np.nonzero((rng > 0) & (r > 0.5) & (r < 15))
+            rows, cols = rows[::16], cols[::16]                    # plenty for 10 cm voxels
+            pts.append(np.einsum("nij,nj->ni", b2w[cols, :3, :3], xyz[rows, cols]) + b2w[cols, :3, 3])
     src.close()
-    return np.array(poses)
+    return (np.array(poses), np.vstack(pts) if pts else np.empty((0, 3))) if map_every else np.array(poses)
 
 
-def path_report(poses):
-    """Path length, height range, tilt and jumps of a SLAM path, all relative to the first pose."""
+def path_report(poses, up=None):
+    """Path length, height range, tilt and jumps of a SLAM path, relative to the first pose.
+
+    Heights and tilts are along `up` (true vertical, e.g. from up_direction) if given, else along the
+    first pose's up, which is only right if the scan started level.
+    """
+    up = poses[0, :3, 2] if up is None else up
     p = poses[:, :3, 3] - poses[0, :3, 3]
+    h = p @ up
     step = np.linalg.norm(np.diff(p, axis=0), axis=1)
-    tilt = np.degrees(np.arccos(np.clip(poses[:, :3, 2] @ poses[0, :3, 2], -1, 1)))
-    return dict(scans=len(p), length=step.sum(), z_min=p[:, 2].min(), z_max=p[:, 2].max(),
+    tilt = np.degrees(np.arccos(np.clip(poses[:, :3, 2] @ up, -1, 1)))
+    return dict(scans=len(p), length=step.sum(), z_min=h.min(), z_max=h.max(),
                 farthest=np.linalg.norm(p, axis=1).max(), max_jump=step.max(initial=0.0),
-                tilt_median=np.median(tilt), tilt_max=tilt.max(), end_gap=np.linalg.norm(p[-1]),
-                end_tilt=tilt[-1])
+                tilt_start=tilt[0], tilt_median=np.median(tilt), tilt_max=tilt.max(),
+                end_gap=np.linalg.norm(p[-1]), end_tilt=tilt[-1] - tilt[0])
 
 
 def dist_stats(d, overlap_d):
@@ -295,16 +327,21 @@ def dist_stats(d, overlap_d):
 
 def cmd_path(args):
     for path in args.osf:
-        poses = slam_poses(path)
+        poses, pts = slam_poses(path, map_every=10)
         if len(poses) < 2 or np.allclose(poses, np.eye(4)):
             print(f"{path}: no SLAM path (use the _slam.osf written by `ouster-cli ... slam ... save`)")
             continue
-        r = path_report(poses)
+        d = voxel_down(pts, 0.1)
+        up = up_direction(normals(d), max_deg=50)        # tilted starts: true up can be far from the start's
+        r = path_report(poses, up)
+        ref = "true vertical, from floor/ceiling" if up is not None else \
+            "start pose's up: NO floor/ceiling found, wrong if the scan started tilted"
         print(f"{path}: {r['scans']} scans, path {r['length']:.1f} m")
-        print(f"  height vs start: {r['z_min']:+.2f} .. {r['z_max']:+.2f} m (span {r['z_max'] - r['z_min']:.2f} m)")
+        print(f"  height vs start ({ref}): {r['z_min']:+.2f} .. {r['z_max']:+.2f} m "
+              f"(span {r['z_max'] - r['z_min']:.2f} m)")
         print(f"  farthest from start {r['farthest']:.1f} m, largest jump between scans {r['max_jump']:.2f} m")
-        print(f"  tilt vs start: median {r['tilt_median']:.0f}°, max {r['tilt_max']:.0f}°")
-        print(f"  end vs start: {r['end_gap']:.2f} m, {r['end_tilt']:.0f}° (only meaningful if you ended on the X)")
+        print(f"  tilt from vertical: start {r['tilt_start']:.0f}°, median {r['tilt_median']:.0f}°, max {r['tilt_max']:.0f}°")
+        print(f"  end vs start: {r['end_gap']:.2f} m, tilt {r['end_tilt']:+.0f}° (only meaningful if you ended on the X)")
         problems = []
         if r["z_max"] - r["z_min"] > args.max_height_span:
             problems.append(f"height span {r['z_max'] - r['z_min']:.1f} m > {args.max_height_span} m")

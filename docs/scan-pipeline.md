@@ -118,7 +118,7 @@ Check the path before colorizing:
 lidarzed-eval path processed/scan01_slam.osf
 ```
 
-It prints the path's height range, tilt and largest jump between scans, relative to the start. A handheld walk stays within about 1 m of height; a span of several meters (flagged as `⚠ SLAM probably lost track`) means the result is unusable. Typical causes: the rig held closer than 1 m to surfaces, only flat floor or ceiling in view, or jerky stop–tilt–stop motion.
+It prints the path's height range and tilt against true vertical (found from the floor and ceiling, so passes held tilted are measured correctly) and the largest jump between scans. A handheld walk stays within about 1 m of height; a span of several meters (flagged as `⚠ SLAM probably lost track`) means the result is unusable. Typical causes: the rig held closer than 1 m to surfaces, only flat floor or ceiling in view, or jerky stop–tilt–stop motion.
 
 Other optional checks:
 

@@ -88,3 +88,29 @@ def test_merge_colors_only_from_colored_points():
     first = np.argmin(out[:, 0])
     assert colored[first] and not colored[1 - first]
     assert np.allclose(col[first], [200, 0, 0])                         # the gray point doesn't dilute it
+
+
+def tilt_about_x(deg):
+    T = np.eye(4)
+    T[:3, :3] = ev.rot_between(np.array([0.0, 0.0, 1.0]), np.array([0, np.sin(np.radians(deg)), np.cos(np.radians(deg))]))
+    return T
+
+
+def test_up_direction_finds_true_vertical_in_tilted_room():
+    rng = np.random.default_rng(4)
+    T = tilt_about_x(25.0)                          # a scan whose start pose was tilted 25°
+    room = ev.voxel_down(ev.transform(synthetic_room(rng), T), 0.1)
+    up = ev.up_direction(ev.normals(room), max_deg=50)
+    assert np.degrees(np.arccos(up @ T[:3, 2])) < 0.5
+
+
+def test_path_report_uses_true_vertical_for_tilted_start():
+    T = tilt_about_x(25.0)
+    poses = np.repeat(T[None], 50, axis=0)          # rig held tilted, walking flat for 5 m
+    poses[:, :3, 3] = np.c_[np.zeros(50), np.linspace(0, 5, 50), np.zeros(50)]
+    start_frame = np.linalg.inv(T) @ poses          # SLAM's world frame is the tilted start pose
+    naive = ev.path_report(start_frame)
+    fixed = ev.path_report(start_frame, up=np.linalg.inv(T)[:3, 2])
+    assert naive["z_max"] - naive["z_min"] > 2.0    # the old false alarm
+    assert fixed["z_max"] - fixed["z_min"] < 1e-6
+    assert np.isclose(fixed["tilt_start"], 25.0) and np.isclose(fixed["tilt_max"], 25.0)
