@@ -133,10 +133,12 @@ def main():
         if not args.no_viz:
             cmd += ["slam", "-v", str(args.slam_voxel), "viz", "-m", "--accum-num", "20", "--map", "--map-ratio", "0.05"]
         # Own process group: Ctrl+C reaches only this script, which then sends ouster-cli a single
-        # SIGINT so it can finalize the OSF (a second one could abort the write)
+        # SIGINT so it can finalize the OSF (a second one could abort the write). Started with
+        # `nohup ... &`, this script inherits SIGINT as ignored; reset it so ouster-cli can still be stopped.
         lidar_log = open(session / "lidar.log", "w") if args.no_viz else None
         lidar = subprocess.Popen(cmd, start_new_session=True, stdout=lidar_log,
-                                 stderr=subprocess.STDOUT if lidar_log else None)
+                                 stderr=subprocess.STDOUT if lidar_log else None,
+                                 preexec_fn=lambda: signal.signal(signal.SIGINT, signal.SIG_DFL))
         # Wait until LiDAR data is actually being written, so the hold-still period covers both sensors
         osf = session / "lidar.osf"
         deadline = time.monotonic() + 30
